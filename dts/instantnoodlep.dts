@@ -26,7 +26,10 @@
     };
 };
 
-// Storage is intentionally left disabled: no reviewed SM8250 UFS component exists in the
-// catalog yet, so enabling ufshc here would publish an ADT node with no driver behind it.
-&ufs { status = "disabled"; };
-&ufsphy { status = "disabled"; };
+// Storage enabled 2026-11-20: the kona-adapted ShengUfs component (device-owned copy of
+// official UniXNU/ShengUfs @f020bd6) is selected, so the ADT ufshc node now has a driver.
+// Register/IRQ/clock facts: sm8250.dtsi + inputs/board/stock-base.dts; the stock node
+// carries no dma-coherent property, so the driver's non-coherent cache maintenance path
+// applies. PHY is the QMP v4 at 0x1d87000/0xe00 (stock), left in the firmware's state.
+&ufs { status = "okay"; };
+&ufsphy { status = "okay"; };

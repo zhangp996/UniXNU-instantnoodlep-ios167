@@ -68,16 +68,16 @@ evidence = []
 
 [[area]]
 id = "storage"
-status = "planned"
-components = ["RamBlock", "AppleKeyStoreState"]
-paths = ["dts/instantnoodlep.dts", "configs/instantnoodlep_defconfig"]
+status = "implemented"
+components = ["RamBlock", "AppleKeyStoreState", "ShengUfs", "VirtioMmioBlock", "VerifiedRoot"]
+paths = ["dts/instantnoodlep.dts", "configs/instantnoodlep_defconfig", "drivers/ShengUfs", "feeds.toml", "board.toml"]
 inputs = ["Identify the storage and root hardware, resources and existing component interfaces for this board."]
-configuration = ["defconfig keeps CONFIG_XNU_NATIVE_UFS off; the SoC dtsi carries the UFS host 0x1d84000 (+0x1d90000 ICE, SPI 265) and PHY 0x1d87000 but both nodes stay disabled."]
-procedure = ["No storage build: the catalog has no SM8250 UFS component, and ShengUfs is SM8750-scoped."]
-findings = ["Without a storage component the root and Data volumes cannot mount, so launchd cannot start even if the kernel links."]
+configuration = ["defconfig sets CONFIG_XNU_NATIVE_UFS=y and CONFIG_XNU_VERIFIED_ROOT_PROBE=y; board selects ShengUfs (+ catalog dependencies VirtioMmioBlock, VerifiedRoot) with component:ShengUfs and build-verified-root-probe.py archives; payload kernel_args carry native-ufs-root=1; the board DTS enables &ufs/&ufsphy. The component source is the device-owned copy of official UniXNU/ShengUfs @f020bd6 pinned by feeds.toml local override."]
+procedure = ["docs/porting/ufs stage order: inventory -> controller access -> DMA/commands -> block reads -> root mount -> persistence -> performance; host build via ./unixnu build kernel with the fresh /opt/unixnu-fresh toolchain; storage ABI inputs from the official audit scripts against the 20H392 kernelcache."]
+findings = ["Without a storage component the root and Data volumes cannot mount, so launchd cannot start even if the kernel links.", "2026-11-20 UFS adaptation started per docs/porting/ufs (official guide). Hardware inventory from inputs/board/stock-base.dts (IN2020 base DT): ufshc@1d84000 reg 0x1d84000/0x3000 + ICE 0x1d90000/0x8000, SPI 0x109=265, 2 lanes, gcc clocks (core 0xa7, aggr 0x06, iface 0xa6, unipro 0xb3, ice 0xaa, tx0 0xb2, rx0 0xb0, rx1 0xb1; ref_clk_src from rpmh), reset gcc 0x21, freq table 37.5/300 MHz; ufsphy_mem@1d87000 reg 0x1d87000/0xe00 + ICE, qcom,ufs-phy-qmp-v4 (dtbo fragment@59), ref_aux gcc 0xad; regulators pm8150 l5/l9/l17/l6/s4 (fragment@59/60). apps-smmu@15000000 qcom,qsmmu-v500 reg 0x15000000/0x100000 + tcu 0x15182000/0x20, qcom,skip-init, 3-lvl tables, actlr stream table; stock ufshc carries NO iommus property, so the UFS stream id must be cross-checked against mainline sm8250.dtsi before SMMU takeover.", "Adaptation mechanism per docs: device repository carries the ShengUfs component source (official UniXNU/ShengUfs @f020bd6, LICENSE preserved) with kona constant adaptations; feeds.toml local override pins it; catalog id ShengUfs and runtime class NativeUfs preserved. Board policy (userdata windows, root UUID, native-ufs-root=1) stays in the device repository.", "Kona adaptation deltas (2026-11-20, evidence: mainline gcc-sm8250.c + sm8250.dtsi + stock-base.dts): GCC UFS branch enables 0x77010/0x77018/0x7701c/0x77020/0x7705c/0x77064/0x770b8/0x770cc (SM8550 sits +8); no separate mem-phy GDSC and no ufs_phy_aux branch on kona (reads guarded, reported 0); SMMU bypass streams 0x0e0 AND 0x4e0 (mainline iommus dual-TBU entries; stock node has none) instead of SM8550 0x60; compatible match accepts qcom,sm8250-ufshc; WiFi window left off (boot-arg gated). Controller/ICE/IRQ/link takeover unchanged (UFSHCI standard, firmware state adopted)."]
 completion = ["Host: register, clock, link and SMMU facts match the board inventory.", "Reads: SCSI capacity, GPT and known blocks are correct; OS/SystemOS windows stay within userdata.", "Root: the configured volume mounts and launchd starts. Persistence: writes survive reboot within the allocated Data region."]
-limits = ["Blocked: no kona UFS driver in the catalog or in UniXNU-sm8250-common (kits/ is empty)."]
-next_action = ["Write a kona UFS component against the UFS guide, or select ShengUfs only after auditing it for SM8250."]
+limits = ["Host adaptation complete; device verification pending (kernel build in progress). Storage ABI audit for 20H392 and the root volume UUID measurement are the next inputs; the WiFi DMA window stays off (wifi boot arg not passed on this board)."]
+next_action = ["Finish the kernel build; run the official storage ABI audit against the 20H392 kernelcache; measure the root volume UUID (udif decode + APFS superblock offsets compiled from the apfs-fuse reference header, container omap cross-check); build payload with native-ufs-root=1; then the guide's device stages (controller access, DMA/commands, block reads, root mount, persistence, performance)."]
 evidence = []
 
 [[area]]

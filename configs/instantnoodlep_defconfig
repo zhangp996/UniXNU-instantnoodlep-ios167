@@ -7,5 +7,7 @@
 CONFIG_XNU_ARM_DT_PLATFORM=y
 CONFIG_XNU_ARMCPU=y
 CONFIG_XNU_CRYPTO_BOOTSTRAP="prelinked"
-# CONFIG_XNU_NATIVE_UFS is not set
+# UFS storage (kona-adapted ShengUfs) with authenticated root window reads.
+CONFIG_XNU_NATIVE_UFS=y
+CONFIG_XNU_VERIFIED_ROOT_PROBE=y
 # CONFIG_XNU_NATIVE_ADRENO is not set
