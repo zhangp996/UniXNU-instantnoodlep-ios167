@@ -42,9 +42,10 @@ chip_id = 0x8015
 board_id = 0x0E
 
 [firmware]
-# uefi-instantnoodlep: the device-validated Mu-Silicium overlay (FD 0x9F000000, 1440x3168,
-# real OnePlus 19805 DTB, 94 IN2020 XBL binaries). Merge it onto a Mu-Silicium checkout with
-# its scripts/sync-to-base.sh, then point --uefi at that checkout.
+# uefi-instantnoodlep: device package written from scratch for this port. SoC plumbing is
+# upstream KonaPkg; board DSC/FDF/MemoryMapLib/ConfigurationMapLib are authored here from
+# measured IN2020 facts (FD 0x9E400000/4 MiB, 1440x3168). Only data is taken: the firmware DTB and
+# the IN2020 XBL driver blobs. Merge onto a Mu-Silicium checkout, then point --uefi at it.
 config = "instantnoodlep"
 dsc = "Platforms/OnePlus/instantnoodlepPkg/instantnoodlep.dsc"
 fd = "Build/instantnoodlepPkg/{target}_CLANGPDB/FV/SILICIUM_UEFI.fd"
@@ -61,14 +62,23 @@ SHIP_MODE = "FALSE"
 BUILDID_STRING = "instantnoodlep-unixnu"
 
 [bootimg.image]
-# Matches the validated boot-menu.img header (kaddr 0x8000, tags 0x100, page 4096, base 0).
-header_version = 1
+# Validated boot-menu.img header (2026-11-17, enters the menu): v2, kaddr 0x8000,
+# raddr 0x1000000, tags 0x100, page 4096, base 0, cmdline
+# "console=ttyMSM0,115200n8 androidboot.hardware=qcom", and the stock boot DTB
+# (11,028,247 B) in the v2 dtb field at 0x1f00000 — NOT appended to the kernel.
+# The unixnu bootimg append-dtb path does not reproduce that transport yet;
+# menu images are hand-packed with mkbootimg.py --dtb --dtb_offset 0x1f00000
+# (see uefi-instantnoodlep docs/FACTS.md). A v1 image with the DTB appended and
+# FD at 0x9F000000 hung at the logo on 2026-11-20.
+header_version = 2
 base = 0x0
 kernel_offset = 0x8000
 ramdisk_offset = 0x01000000
 tags_offset = 0x100
 pagesize = 4096
-kernel_compression = "gzip"
+# Validated boot-menu.img stores the raw BootShim+FD (not gzip): the OnePlus ABL
+# mishandles the compressed stream, so use the uncompressed transport.
+kernel_compression = "none"
 
 [userdata]
 # GPT userdata on this unit: first_lba from the stock GPT (last partition, auto-expands),
