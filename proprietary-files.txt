@@ -1,20 +1,31 @@
 # Required firmware inputs: relative path | source | SHA-256 | consumer
 #
-# Sources for this board, in order of preference:
-#   stock OTA  IN2020domestic_11_13.1.0.185CN01_2023121122370000 (ColorOS/OnePlus 11.13.1.0, Android 11)
+# Sources for this board:
+#   stock OTA  IN2020domestic_11_13.1.0.185CN01_2023121122370000 (OnePlus/ColorOS 11.13.1.0, Android 11)
+#              unpacked at D:\IN2020domestic_..._MsmDownloadTool_Patched\..._解包
 #   restore    iPhone10,3,iPhone10,6_16.7.16_20H392_Restore.ipsw (Apple identity, never redistributed)
+#   validated  uefi-instantnoodlep overlay (FD 0x9F000000, 1440x3168, real 19805 DTB, 94 XBL binaries)
 #
-# Measured board images (not consumed by a build yet; they are the hardware evidence for
-# dts/instantnoodlep.dts and [bootimg.image]):
-#   boot.img | stock OTA boot_a | 5affd6a58bc6ce7baf751acb3cd46fd2cf0e8331a7b9425b6cafd2cc2512dd6d | DTB/boot header reference
-#   dtbo.img | stock OTA dtbo_a | 996defc38984295a1e0d3db8bf8c2deb1fa303e564c07cb84babd64f1a45826e | panel/touch overlays (19 variants)
+# Board evidence already taken (inputs/stock, inputs/board):
+#   boot.img        | stock boot_a   | 5affd6a58bc6ce7baf751acb3cd46fd2cf0e8331a7b9425b6cafd2cc2512dd6d | boot header / base DT
+#   dtbo.img        | stock dtbo_a   | 996defc38984295a1e0d3db8bf8c2deb1fa303e564c07cb84babd64f1a45826e | 19 panel/touch overlays
+#   abl.elf         | stock abl_a    | (taken) | ABL load behavior (ABOOT FV 0x9FA00000)
+#   xbl_ddr5.elf    | stock xbl_a    | (taken) | XBL; its 0xD0000000 region is NOT the UEFI FD window
+#   xbl_config_ddr5.elf | stock xbl_config_a | (taken) | XBL config
+#   uefi_sec.mbn    | stock uefisecapp_a | (taken) | references UEFI FD 0x9F000000
+#   devcfg.mbn      | stock devcfg_a | (taken) | PMIC/regulator device config
+#   gpt_main0.bin   | stock GPT      | (taken) | userdata first_lba 4133800 (auto-expands)
+#   splash.img      | stock splash   | (taken) | boot splash framebuffer
+#   BTFM.bin        | stock bluetooth_a | (taken) | BT/FM firmware
 #
-# Still to extract before a storage/GPU/display build (consumer in brackets):
-#   a650_zap.elf   | stock OTA vendor_a  | (unmeasured) | Adreno 650 zap shader [gpu]
-#   a650_sqe.fw    | stock OTA vendor_a  | (unmeasured) | Adreno 650 SQE firmware [gpu]
-#   a650_gmu.bin   | stock OTA vendor_a  | (unmeasured) | Adreno 650 GMU firmware [gpu]
-#   s6sy791*.fw    | stock OTA vendor_a  | (unmeasured) | S6SY791 touch controller [input]
-#   ufs*           | stock OTA vendor_a  | (unmeasured) | UFS PHY/ICE firmware [storage]
+# Firmware DTB (consumed by the firmware build, in uefi-instantnoodlep/Resources/DTBs):
+#   instantnoodlep.dtb | validated firmware | f7fa0c06d6719bd9a04f3a39be7fd117a527ced59904b5c76da8ae37c5de27f7 | UEFI FDT
 #
-# Extraction needs the vendor partition from super.img (lpunpack) plus vendor/firmware listing;
-# scripts/extract-files.py is not written yet.
+# Still to extract from super.img (vendor_a, via lpunpack) before storage/GPU/input builds:
+#   a650_zap.elf / a650_sqe.fw / a650_gmu.bin | vendor firmware | (unmeasured) | Adreno 650 [gpu]
+#   s6sy791*.fw                              | vendor firmware | (unmeasured) | S6SY791 touch [input]
+#   ufs PHY/ICE firmware                     | vendor firmware | (unmeasured) | UFS [storage]
+#   NON-HLOS.bin (modem/adsp/cdsp/slpi)      | stock NON-HLOS  | (in package)  | baseband/DSP [network/audio]
+#   dspso.bin                                | stock dspso     | (in package)  | DSP shared objects [audio]
+#
+# super.img is 8 GiB; extract only the named vendor firmware files, do not commit them.

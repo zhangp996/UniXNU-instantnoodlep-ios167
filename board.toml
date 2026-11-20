@@ -42,13 +42,16 @@ chip_id = 0x8015
 board_id = 0x0E
 
 [firmware]
-# The Mu-Silicium device package (uefi-instantnoodlep) does not exist upstream yet: the
-# three paths below are the values that package must provide.
+# uefi-instantnoodlep: the device-validated Mu-Silicium overlay (FD 0x9F000000, 1440x3168,
+# real OnePlus 19805 DTB, 94 IN2020 XBL binaries). Merge it onto a Mu-Silicium checkout with
+# its scripts/sync-to-base.sh, then point --uefi at that checkout.
 config = "instantnoodlep"
 dsc = "Platforms/OnePlus/instantnoodlepPkg/instantnoodlep.dsc"
 fd = "Build/instantnoodlepPkg/{target}_CLANGPDB/FV/SILICIUM_UEFI.fd"
-packages = ["{uefi}", "{uefi}/Platforms/OnePlus", "{tree}/package", "{tree}/drivers/DarwinBoot", "{edk2}"]
-patches = ["Resources/MuPatches/AsmMacroLib.patch", "Resources/MuPatches/Auth-Service.patch", "Resources/MuPatches/Boot-Manager.patch", "Resources/MuPatches/Timer.patch", "Resources/MuPatches/Usb-Bus.patch"]
+packages = ["{uefi}", "{uefi}/Platforms/OnePlus", "{uefi}/Silicon/Qualcomm", "{uefi}/Silicon/Silicium", "{uefi}/Common/Mu", "{uefi}/Common/Mu_OEM_Sample", "{tree}/package", "{tree}/drivers/DarwinBoot", "{edk2}"]
+submodules = ["Common/Mu", "Common/Mu_OEM_Sample", "Silicon/Silicium/OpensslPkg/Library/OpensslLib/openssl"]
+# MuPatches present in the Mu-Silicium base (AsmMacroLib was upstreamed and is gone).
+patches = ["Resources/MuPatches/Auth-Service.patch", "Resources/MuPatches/Boot-Manager.patch", "Resources/MuPatches/Timer.patch", "Resources/MuPatches/Usb-Bus.patch"]
 
 [firmware.defines]
 ENABLE_SECUREBOOT = "0"
@@ -58,14 +61,21 @@ SHIP_MODE = "FALSE"
 BUILDID_STRING = "instantnoodlep-unixnu"
 
 [bootimg.image]
-# Qualcomm kona ABL values (stock boot.img header v2: kernel 0x8000, ramdisk 0x1000000, tags 0x100).
+# Matches the validated boot-menu.img header (kaddr 0x8000, tags 0x100, page 4096, base 0).
 header_version = 1
-base = 0x10000000
+base = 0x0
 kernel_offset = 0x8000
 ramdisk_offset = 0x01000000
 tags_offset = 0x100
-pagesize = 2048
+pagesize = 4096
 kernel_compression = "gzip"
+
+[userdata]
+# GPT userdata on this unit: first_lba from the stock GPT (last partition, auto-expands),
+# size from fastboot partition-size:userdata = 0x1928453000, 4096-byte logical blocks.
+first_lba = 4133800
+last_lba = 30513146
+lba_bytes = 4096
 
 [payload]
 volume = "IN2020"
