@@ -33,7 +33,10 @@ archives = [
   "component:RamBlock",
   "component:AppleKeyStoreState",
   "component:ShengUfs",
-  "build-verified-root-probe.py",
+  # Device-owned verified-root archive (iOS 16.x pattern): real kit crypto + header-only
+  # owner policy table from scripts/make-root-policies-linux.py. The reference
+  # build-verified-root-probe.py is a macOS instrument pinned to the iPadOS 17 images.
+  "build-verified-root.py",
 ]
 
 [device_tree]
@@ -94,6 +97,15 @@ kernel_compression = "none"
 first_lba = 4133800
 last_lba = 30513146
 lba_bytes = 4096
+
+[root]
+# Independently measured from the officially extracted 20H392 disk images (udif decode
+# to raw + container-aligned APFS superblock scan; offsets from the apfs-fuse reference
+# header). The owner-signed policies are bound to these digests and volume UUIDs.
+os_image_sha256 = "6e87bfcaa8eca952e00b719f333d1f1060715a63566112267ad8730e1ed98906"
+os_volume_uuid = "DADD93F8-DBBF-4B17-A1DF-0F11E64172F7"
+systemos_image_sha256 = "9cd738f3b0169055549df84ad6d8d13e50a2da39af618ce0522ca4e06df86849"
+systemos_volume_uuid = "96096B28-B6DC-4BC7-9D3A-2632A0FE53F1"
 
 [payload]
 volume = "IN2020"
