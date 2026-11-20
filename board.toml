@@ -16,9 +16,8 @@ defconfig = "instantnoodlep_defconfig"
 config_fragments = ["arch:configs/common.config", "soc:configs/sm8250.config", "os:configs/ios.config"]
 # iOS 16.7.16 builds on xnu-8796.141.3 (donor kernelcache xnu-8796.142.1.703.8, Darwin 22.6.0).
 # The shared arm64 series targets xnu-10063 and does not apply to 8796; the rebased 8796
-# series (95 entries, strict git apply verified on the real 8796.141.3 tree) lives in this
-# repository, migrated 2026-11-20 from the baseline archive
-# UniXNU-instantnoodlep-ios167 r2/device/patches/xnu-8796 (see porting.toml, configuration).
+# series (95 entries) is owned by this repository, strict sequential git apply verified
+# 101/101 with the OS series on 2026-11-20 (see porting.toml, configuration).
 # The OS profile series carries the seven 8796/Linux-toolchain fixes and applies after it.
 patch_series = ["device:patches/xnu-8796/series", "os:patches/xnu/series"]
 archives = [
