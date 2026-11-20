@@ -130,3 +130,8 @@ unixnu = "../src/UniXNU"
 
 [package.defconfig]
 "ios-16.7.16-20H392" = "instantnoodlep_defconfig"
+
+[os_overrides."ios-16.7.16-20H392".kernel.prelink]
+# Device prelink wrapper catalogues the measured 20H392 Libm inline math pool (identical to
+# the official apollo iOS 16.5 pool) before running the official emit_prelink unchanged.
+tool = "scripts/emit-prelink-ios16.py"
