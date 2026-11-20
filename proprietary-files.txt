@@ -1,0 +1,20 @@
+# Required firmware inputs: relative path | source | SHA-256 | consumer
+#
+# Sources for this board, in order of preference:
+#   stock OTA  IN2020domestic_11_13.1.0.185CN01_2023121122370000 (ColorOS/OnePlus 11.13.1.0, Android 11)
+#   restore    iPhone10,3,iPhone10,6_16.7.16_20H392_Restore.ipsw (Apple identity, never redistributed)
+#
+# Measured board images (not consumed by a build yet; they are the hardware evidence for
+# dts/instantnoodlep.dts and [bootimg.image]):
+#   boot.img | stock OTA boot_a | 5affd6a58bc6ce7baf751acb3cd46fd2cf0e8331a7b9425b6cafd2cc2512dd6d | DTB/boot header reference
+#   dtbo.img | stock OTA dtbo_a | 996defc38984295a1e0d3db8bf8c2deb1fa303e564c07cb84babd64f1a45826e | panel/touch overlays (19 variants)
+#
+# Still to extract before a storage/GPU/display build (consumer in brackets):
+#   a650_zap.elf   | stock OTA vendor_a  | (unmeasured) | Adreno 650 zap shader [gpu]
+#   a650_sqe.fw    | stock OTA vendor_a  | (unmeasured) | Adreno 650 SQE firmware [gpu]
+#   a650_gmu.bin   | stock OTA vendor_a  | (unmeasured) | Adreno 650 GMU firmware [gpu]
+#   s6sy791*.fw    | stock OTA vendor_a  | (unmeasured) | S6SY791 touch controller [input]
+#   ufs*           | stock OTA vendor_a  | (unmeasured) | UFS PHY/ICE firmware [storage]
+#
+# Extraction needs the vendor partition from super.img (lpunpack) plus vendor/firmware listing;
+# scripts/extract-files.py is not written yet.

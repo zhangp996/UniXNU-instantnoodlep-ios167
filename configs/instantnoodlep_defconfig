@@ -1,0 +1,11 @@
+# Kernel configuration: CONFIG_XNU_<NAME> becomes XNU_<NAME> for the kernel build script.
+# Applied after arch:configs/common.config, soc:configs/sm8250.config and os:configs/ios.config.
+#
+# First bring-up: platform, CPU and the prelinked crypto bootstrap only.
+# Storage (UFS) stays off because the catalog has no SM8250 storage component yet: ShengUfs
+# targets SM8750, and this SoC repository's kits/ is empty (see porting.toml, area "storage").
+CONFIG_XNU_ARM_DT_PLATFORM=y
+CONFIG_XNU_ARMCPU=y
+CONFIG_XNU_CRYPTO_BOOTSTRAP="prelinked"
+# CONFIG_XNU_NATIVE_UFS is not set
+# CONFIG_XNU_NATIVE_ADRENO is not set

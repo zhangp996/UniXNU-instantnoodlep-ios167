@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: BSD-3-Clause
+// OnePlus 8 Pro (IN2020 / instantnoodlep), Qualcomm SM8250 (kona).
+//
+// Board description for the UniXNU ADT generator: memory, enabled CPUs and the
+// peripherals a selected component consumes. Hardware facts come from the stock
+// IN2020 boot_a/dtbo_a images and from the SoC repository's SM8250 register map.
+
+/dts-v1/;
+/include/ "sm8250.dtsi"
+
+/ {
+    model = "OnePlus 8 Pro (IN2020)";
+    compatible = "oneplus,instantnoodlep", "qcom,sm8250";
+
+    // DRAM: kona maps 8 GiB at 0x80000000 on this board (8 GiB SKU). The payload's
+    // dram_size must agree with this node.
+    memory@80000000 {
+        device_type = "memory";
+        reg = <0 0x80000000 0 0x200000000>;
+    };
+
+    // The bootloader leaves the display in its hand-off state; the panel is driven by
+    // the firmware GOP until a display component with this panel's timing exists.
+    chosen {
+        bootargs = "";
+    };
+};
+
+// Storage is intentionally left disabled: no reviewed SM8250 UFS component exists in the
+// catalog yet, so enabling ufshc here would publish an ADT node with no driver behind it.
+&ufs { status = "disabled"; };
+&ufsphy { status = "disabled"; };

@@ -1,0 +1,189 @@
+schema_version = 1
+
+[device]
+name = "instantnoodlep"
+soc = "SM8250"
+os_profile = "ios-16.7.16-20H392"
+summary = "OnePlus 8 Pro (IN2020), SM8250 kona, iOS 16.7.16 (20H392) arm64 target. Configuration layer resolves; kernel series, storage component and firmware package are the open gates."
+
+[[area]]
+id = "configuration"
+status = "planned"
+components = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "XnuPrelink", "DarwinBoot"]
+paths = ["board.toml", "feeds.toml", "local.toml", "configs/**", "dts/**"]
+inputs = ["Identify the configuration hardware, resources and existing component interfaces for this board."]
+configuration = ["board.toml selects SoC source sm8250 (zhangp996/UniXNU-sm8250-common @3481a8b) and OS profile ios-16.7.16-20H392; kernel.defconfig is instantnoodlep_defconfig; device_tree.source is device:dts/instantnoodlep.dts with soc:dts include."]
+procedure = ["unixnu defconfig instantnoodlep_defconfig -D ../UniXNU-instantnoodlep; unixnu status --json -D ../UniXNU-instantnoodlep; porting-record.py check."]
+findings = ["status resolves the arm64 profile, the local sm8250 SoC source and 56 arch patches in order. No catalog component declares ios-16.7.16 in os_abi: every selected component lists ipados-17.7.11-21H461 only, so the Darwin 22 ABI is unverified."]
+completion = ["All source pins resolve; every selected component has a record; status shows the intended overrides and patch order."]
+limits = ["The shared arm64 patch series targets xnu-10063; nothing in this repository has been built for xnu-8796 yet."]
+next_action = ["Back-port the arch series to xnu-8796.141.3, then re-resolve status."]
+evidence = []
+
+[[area]]
+id = "firmware"
+status = "planned"
+components = []
+paths = ["proprietary-files.txt", "scripts/package.sh"]
+inputs = ["Identify the firmware and boot hardware, resources and existing component interfaces for this board."]
+configuration = ["[firmware] names Platforms/OnePlus/instantnoodlepPkg/instantnoodlep.dsc, Build/instantnoodlepPkg/{target}_CLANGPDB/FV/SILICIUM_UEFI.fd, and a 192 MiB payload volume IN2020."]
+procedure = ["unixnu build firmware --uefi <Mu-Silicium + instantnoodlepPkg> -D ../UniXNU-instantnoodlep --target DEBUG"]
+findings = ["No Mu-Silicium device package exists for instantnoodlep upstream, so the dsc/fd paths are unbuilt placeholders. The stock boot.img header is v2 with kernel 0x8000, ramdisk 0x01000000, tags 0x100, pagesize 4096; [bootimg.image] mirrors those values."]
+completion = ["Firmware image builds, enters UniXNU, publishes the framebuffer and preserves the documented memory reservations."]
+limits = ["Blocked on a Mu-Silicium instantnoodlep platform (display, UFS, USB) that does not exist yet."]
+next_action = ["Create uefi-instantnoodlep from a Mu-Silicium SM8250 platform, then build the firmware."]
+evidence = []
+
+[[area]]
+id = "cpu"
+status = "planned"
+components = []
+paths = ["dts/instantnoodlep.dts"]
+inputs = ["Identify the cpu and interrupts hardware, resources and existing component interfaces for this board."]
+configuration = ["SoC dtsi declares eight Kryo 585 cores (4x A55, 3x A77, 1x A77 prime), timebase-frequency 19200000, GICv3 at 0x17a00000 with redistributor stride 0x20000, psci smc."]
+procedure = ["dtc -I dts -O dtb -i ../UniXNU-sm8250-common/dts -o out/instantnoodlep.dtb dts/instantnoodlep.dts"]
+findings = ["CPU topology and timer rate are SoC facts from the selected SoC repository, not measured on this board yet."]
+completion = ["Every enabled CPU reaches its entry checkpoint and timer/IPI handling works on each enabled CPU."]
+limits = ["No device run."]
+next_action = ["Boot the firmware to the menu and read the CPU bring-up log."]
+evidence = []
+
+[[area]]
+id = "memory"
+status = "planned"
+components = ["RamBlock"]
+paths = ["dts/instantnoodlep.dts"]
+inputs = ["Identify the memory and dma hardware, resources and existing component interfaces for this board."]
+configuration = ["Board DTS declares 8 GiB at 0x80000000; payload dram_size is 0x200000000; RamBlock provides the RAM block device for first bring-up."]
+procedure = ["unixnu payload -D ../UniXNU-instantnoodlep --unique-chip-id <seed>"]
+findings = ["The DRAM size is the 8 GiB SKU value and has not been confirmed on this unit: confirm from /proc/meminfo on Android or the ABL log."]
+completion = ["All handoff regions are accounted for and each enabled DMA engine accesses its allocated range with the documented cache policy."]
+limits = ["DRAM size unverified; no device run."]
+next_action = ["Confirm DRAM size on the unit."]
+evidence = []
+
+[[area]]
+id = "storage"
+status = "planned"
+components = ["RamBlock", "AppleKeyStoreState"]
+paths = ["dts/instantnoodlep.dts", "configs/instantnoodlep_defconfig"]
+inputs = ["Identify the storage and root hardware, resources and existing component interfaces for this board."]
+configuration = ["defconfig keeps CONFIG_XNU_NATIVE_UFS off; the SoC dtsi carries the UFS host 0x1d84000 (+0x1d90000 ICE, SPI 265) and PHY 0x1d87000 but both nodes stay disabled."]
+procedure = ["No storage build: the catalog has no SM8250 UFS component, and ShengUfs is SM8750-scoped."]
+findings = ["Without a storage component the root and Data volumes cannot mount, so launchd cannot start even if the kernel links."]
+completion = ["Host: register, clock, link and SMMU facts match the board inventory.", "Reads: SCSI capacity, GPT and known blocks are correct; OS/SystemOS windows stay within userdata.", "Root: the configured volume mounts and launchd starts. Persistence: writes survive reboot within the allocated Data region."]
+limits = ["Blocked: no kona UFS driver in the catalog or in UniXNU-sm8250-common (kits/ is empty)."]
+next_action = ["Write a kona UFS component against the UFS guide, or select ShengUfs only after auditing it for SM8250."]
+evidence = []
+
+[[area]]
+id = "display"
+status = "planned"
+components = ["GopFramebuffer"]
+paths = ["dts/instantnoodlep.dts", "board.toml"]
+inputs = ["Identify the display hardware, resources and existing component interfaces for this board."]
+configuration = ["GopFramebuffer hands the firmware GOP over to XNU; the panel is 1440x3168 DSC and stays with the firmware until a display component exists."]
+procedure = ["unixnu bootimg -D ../UniXNU-instantnoodlep --uefi <uefi> --dtb <dtb>"]
+findings = ["The stock dtbo overlays identify the S6SY791 touch controller in five of nineteen board variants; the panel timing is not transcribed into the board DTS yet."]
+completion = ["A known frame appears with correct geometry and colors, then userland presentation and backlight controls work."]
+limits = ["No display component and no device run."]
+next_action = ["Add a display component with this panel's timing."]
+evidence = []
+
+[[area]]
+id = "input"
+status = "planned"
+components = []
+paths = ["dts/instantnoodlep.dts"]
+inputs = ["Identify the input hardware, resources and existing component interfaces for this board."]
+configuration = ["None yet: no input component is selected and no i2c/SPI node for S6SY791 is described."]
+procedure = ["Not run."]
+findings = ["Stock dtbo overlays name s6sy791 (variants 19065/19811/19805) on QUPv3 SE; the bus, address and interrupt GPIO are not transcribed yet."]
+completion = ["Touch and buttons produce events in userland."]
+limits = ["No input component."]
+next_action = ["Transcribe the S6SY791 node from the stock overlay and select an input component."]
+evidence = []
+
+[[area]]
+id = "gpu"
+status = "planned"
+components = []
+paths = ["dts/instantnoodlep.dts", "configs/instantnoodlep_defconfig"]
+inputs = ["Identify the gpu hardware, resources and existing component interfaces for this board."]
+configuration = ["Adreno 650 (gpu 0x3d00000, GMU 0x3d6a000, SMMU 0x3da0000) is described by the SoC dtsi but disabled; CONFIG_XNU_NATIVE_ADRENO is off."]
+procedure = ["Not run."]
+findings = ["The catalog's Adreno740 component is A740-only; no A650 component exists, so userland Metal has no driver."]
+completion = ["Metal work is queued behind kernel and storage bring-up."]
+limits = ["No A650 component."]
+next_action = ["Add an Adreno 650 component."]
+evidence = []
+
+[[area]]
+id = "network"
+status = "planned"
+components = []
+paths = ["dts/instantnoodlep.dts"]
+inputs = ["Identify the network hardware and existing component interfaces."]
+configuration = ["Not selected for this bring-up."]
+procedure = ["Not run."]
+findings = ["SM8250 Wi-Fi is PCIe ath11k (QCA6391); no Wi-Fi component is selected."]
+completion = ["Not in scope for the first boot."]
+limits = ["Out of scope."]
+next_action = ["Add after storage and display."]
+evidence = []
+
+[[area]]
+id = "audio"
+status = "planned"
+components = []
+paths = ["dts/instantnoodlep.dts"]
+inputs = ["Identify the audio hardware and existing component interfaces."]
+configuration = ["Not selected for this bring-up."]
+procedure = ["Not run."]
+findings = ["SM8250 audio is ADSP/GPR based; no audio component is selected."]
+completion = ["Not in scope for the first boot."]
+limits = ["Out of scope."]
+next_action = ["Add after storage and display."]
+evidence = []
+
+[[area]]
+id = "power"
+status = "planned"
+components = []
+paths = ["dts/instantnoodlep.dts"]
+inputs = ["Identify the power hardware and existing component interfaces."]
+configuration = ["Not selected for this bring-up."]
+procedure = ["Not run."]
+findings = ["PM8150/PM8150A/PM8150L SPMI regulators are not described; the firmware keeps the rails it needs."]
+completion = ["Battery, charging and thermal reporting work in userland."]
+limits = ["Out of scope."]
+next_action = ["Add a PMIC component."]
+evidence = []
+
+[[area]]
+id = "packaging"
+status = "planned"
+components = []
+paths = ["scripts/package.sh", "board.toml", ".github/workflows/package.yml"]
+inputs = ["Identify the packaging inputs: seed, IPSW, trust cache, firmware checkout."]
+configuration = ["[package] points at ../src/UniXNU; [package.defconfig] maps ios-16.7.16-20H392 to instantnoodlep_defconfig."]
+procedure = ["scripts/package.sh --check --os ios-16.7.16-20H392; unixnu ipsw info product Model --ipsw <local restore image>"]
+findings = ["ipsw info validates product iPhone10,6, device_class d221ap, chip_id 0x8015, board_id 0x0E against the 20H392 manifest; the 192 MiB payload and 823-byte-class argument budget are not reproduced from the dead branch."]
+completion = ["A clean checkout produces the kernel, payload and boot image without edits."]
+limits = ["Blocked on the 8796 kernel series, the data seed (needs macOS hdiutil) and the missing firmware package."]
+next_action = ["Measure the kernelcache SHA-256 and the two APFS volume UUIDs, then fill [kernel.prelink] and [root]."]
+evidence = []
+
+[[area]]
+id = "diagnostics"
+status = "planned"
+components = []
+paths = ["board.toml"]
+inputs = ["Identify the log channel used during bring-up."]
+configuration = ["USB CDC ACM debug port is expected from DarwinBoot; no QcomXnuUsbDebug component is selected yet."]
+procedure = ["fastboot boot <image>, then capture the CDC ACM port."]
+findings = ["The phone is detected in fastboot as serial fa8620b3, product kona, unlocked, current-slot a."]
+completion = ["The last confirmed boot stage is recorded for every run."]
+limits = ["No image to boot yet."]
+next_action = ["Add a USB debug component before the first kernel boot."]
+evidence = []

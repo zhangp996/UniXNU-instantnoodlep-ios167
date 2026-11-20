@@ -1,0 +1,87 @@
+schema_version = 2
+
+[board]
+name = "instantnoodlep"
+soc = "SM8250"
+soc_source = "sm8250"
+os_profile = "ios-16.7.16-20H392"
+description = "OnePlus 8 Pro (IN2020): SM8250 (kona), 1440x3168 DSC panel, S6SY791 touch; iOS 16.7.16 (20H392) arm64 target"
+kit = "instantnoodlep"
+
+[components]
+include = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "XnuPrelink", "DarwinBoot", "GopFramebuffer", "RamBlock", "AppleKeyStoreState"]
+
+[kernel]
+defconfig = "instantnoodlep_defconfig"
+config_fragments = ["arch:configs/common.config", "soc:configs/sm8250.config", "os:configs/ios.config"]
+patch_series = ["arch:patches/xnu/series", "soc:patches/xnu/series", "os:patches/xnu/series", "device:patches/xnu/series"]
+archives = [
+  "build-corecrypto-14.py",
+  "build-corecrypto-14.py --namespace",
+  "component:ArmDTPlatform",
+  "component:ArmCpu",
+  "component:SoftwareAES",
+  "build-software-aes-bindings.py",
+  "build-mockfs-fixture.py",
+  "build-libpthread-kernel.py",
+  "component:RamBlock",
+  "component:AppleKeyStoreState",
+]
+
+[device_tree]
+source = "device:dts/instantnoodlep.dts"
+include_dirs = ["soc:dts"]
+
+[ipsw]
+# The restore image is not redistributable; point the build at a local copy with --ipsw.
+product = "iPhone10,6"
+version = "16.7.16"
+build = "20H392"
+device_class = "d221ap"
+chip_id = 0x8015
+board_id = 0x0E
+
+[firmware]
+# The Mu-Silicium device package (uefi-instantnoodlep) does not exist upstream yet: the
+# three paths below are the values that package must provide.
+config = "instantnoodlep"
+dsc = "Platforms/OnePlus/instantnoodlepPkg/instantnoodlep.dsc"
+fd = "Build/instantnoodlepPkg/{target}_CLANGPDB/FV/SILICIUM_UEFI.fd"
+packages = ["{uefi}", "{uefi}/Platforms/OnePlus", "{tree}/package", "{tree}/drivers/DarwinBoot", "{edk2}"]
+patches = ["Resources/MuPatches/AsmMacroLib.patch", "Resources/MuPatches/Auth-Service.patch", "Resources/MuPatches/Boot-Manager.patch", "Resources/MuPatches/Timer.patch", "Resources/MuPatches/Usb-Bus.patch"]
+
+[firmware.defines]
+ENABLE_SECUREBOOT = "0"
+DEVICE_MODEL = "0"
+MEMORY_PROTECTION = "TRUE"
+SHIP_MODE = "FALSE"
+BUILDID_STRING = "instantnoodlep-unixnu"
+
+[bootimg.image]
+# Qualcomm kona ABL values (stock boot.img header v2: kernel 0x8000, ramdisk 0x1000000, tags 0x100).
+header_version = 1
+base = 0x10000000
+kernel_offset = 0x8000
+ramdisk_offset = 0x01000000
+tags_offset = 0x100
+pagesize = 2048
+kernel_compression = "gzip"
+
+[payload]
+volume = "IN2020"
+size_mib = 192
+loader = "firmware"
+title = "iOS 16.7.16"
+dram_size = "0x200000000"
+timeout = 3
+kernel_args = ["-v", "serial=3"]
+
+[payload.adt]
+chip_id = "0x8015"
+unique_chip_id = "required"
+
+[package]
+unixnu = "../src/UniXNU"
+
+[package.defconfig]
+"ios-16.7.16-20H392" = "instantnoodlep_defconfig"
