@@ -78,10 +78,9 @@ findings = ["Without a storage component the root and Data volumes cannot mount,
 completion = ["Host: register, clock, link and SMMU facts match the board inventory.", "Reads: SCSI capacity, GPT and known blocks are correct; OS/SystemOS windows stay within userdata.", "Root: the configured volume mounts and launchd starts. Persistence: writes survive reboot within the allocated Data region."]
 limits = ["Host adaptation complete; device verification pending (kernel build in progress). Storage ABI audit for 20H392 and the root volume UUID measurement are the next inputs; the WiFi DMA window stays off (wifi boot arg not passed on this board)."]
 next_action = ["Finish the kernel build; run the official storage ABI audit against the 20H392 kernelcache; measure the root volume UUID (udif decode + APFS superblock offsets compiled from the apfs-fuse reference header, container omap cross-check); build payload with native-ufs-root=1; then the guide's device stages (controller access, DMA/commands, block reads, root mount, persistence, performance)."]
-evidence = []
-
-[[area]]
-id = "display"
+evidence = [
+  { kind = "host", command = "tools/verify-8796-series.sh (strict git apply of the resolved 55-entry series on a fresh xnu-8796.141.3 clone); ShengUfs kona deltas reviewed against mainline gcc-sm8250.c, sm8250.dtsi and inputs/board/stock-base.dts", revision = "d8e8c71bc6bea7d665a96b64acccc7ba36c10a11", reference = "docs/evidence/2026-11-20-menu-authored-secfix.log", result = "Series 55/55 strict apply, 0 failures; UFS adaptation deltas (GCC offsets, dual SMMU streams 0x0e0/0x4e0, compatible match, absent GDSC/AUX guards) applied with SoC evidence; kernel build with CONFIG_XNU_NATIVE_UFS=y running on the fresh /opt/unixnu-fresh toolchain. Device stages pending." },
+]
 status = "planned"
 components = ["GopFramebuffer"]
 paths = ["dts/instantnoodlep.dts", "board.toml"]
@@ -172,10 +171,10 @@ paths = ["scripts/package.sh", "board.toml", ".github/workflows/package.yml"]
 inputs = ["Identify the packaging inputs: seed, IPSW, trust cache, firmware checkout."]
 configuration = ["[package] points at ../src/UniXNU; [package.defconfig] maps ios-16.7.16-20H392 to instantnoodlep_defconfig."]
 procedure = ["scripts/package.sh --check --os ios-16.7.16-20H392; unixnu ipsw info product Model --ipsw <local restore image>"]
-findings = ["ipsw info validates product iPhone10,6, device_class d221ap, chip_id 0x8015, board_id 0x0E against the 20H392 manifest; the 192 MiB payload and 823-byte-class argument budget are not reproduced from the dead branch."]
+findings = ["ipsw info validates product iPhone10,6, device_class d221ap, chip_id 0x8015, board_id 0x0E against the 20H392 manifest; the 192 MiB payload and 823-byte-class argument budget are not reproduced from the dead branch.", "2026-11-20: kernelcache sha256 re-measured from the officially extracted 20H392 slice = 2ec297ba... (matches profile pin); all 31 intended prelink roots present in the donor __PRELINK_INFO (753 CFBundleIdentifier entries); OS dmg extracted and pin-verified; APFS volume UUID measurement running (udif decode + superblock offsets compiled from the apfs-fuse reference header).", "Operator constraint 2026-11-20: GitHub CI may be used for the macOS-only Data seed, but ONLY after explicit operator confirmation; no CI run without it."]
 completion = ["A clean checkout produces the kernel, payload and boot image without edits."]
-limits = ["Blocked on the 8796 kernel series, the data seed (needs macOS hdiutil) and the missing firmware package."]
-next_action = ["Measure the kernelcache SHA-256 and the two APFS volume UUIDs, then fill [kernel.prelink] and [root]."]
+limits = ["Data seed needs macOS hdiutil; the Linux host cannot generate it. The documented alternative is the GitHub macOS runner (docs/building#macos-runner); per operator instruction (2026-11-20) any CI run MUST be confirmed with the operator beforehand. CI prerequisites: a fork with Actions enabled carrying our local commits (main-repo OS profile + device repo), the UNIXNU_UNIQUE_CHIP_ID secret supplied by the operator, and workflow inputs device_repository/device_ref/defconfig/steps.", "Kernel build in progress (build #10); payload/boot image pending kernel + Data seed."]
+next_action = ["Finish kernel build; run UUID measurement回填 (in progress); then ask the operator before any GitHub CI run for the Data seed (or obtain a macOS host); build payload with --trust-cache (extracted StaticTrustCache) and --data-ramdisk <seed>; bootimg with the validated transport."]
 evidence = []
 
 [[area]]
