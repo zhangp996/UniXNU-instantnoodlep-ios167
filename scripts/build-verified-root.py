@@ -25,6 +25,7 @@ import sys
 import uuid
 
 ROOT = Path(os.environ.get('UNIXNU_TREE') or Path(__file__).resolve().parents[1])   # the assembled build tree
+DEVICE = Path(os.environ['UNIXNU_DEVICE'])   # device repository (board package sources), set by the driver
 KIT = ROOT / 'kits/VerifiedRoot'
 OUT = ROOT / 'build/verified-root-xnu'
 OUT.mkdir(parents=True, exist_ok=True)
@@ -126,7 +127,9 @@ def main():
     record = compile_record()
     includes = ['-I', str(KIT / 'include'), '-I', str(ROOT / 'build/corecrypto-2023/include')]
     objects = []
-    for source in (KIT / 'src/verified_root.c', KIT / 'adapters/xnu_crypto.c'):
+    sources = [KIT / 'src/verified_root.c', KIT / 'adapters/xnu_crypto.c',
+               DEVICE / 'package/VerifiedRootProbe.c']
+    for source in sources:
         destination = OUT / (source.stem + '.o')
         replay(record, source, destination, includes)
         check_arm64(destination)

@@ -37,6 +37,7 @@ archives = [
   # owner policy table from scripts/make-root-policies-linux.py. The reference
   # build-verified-root-probe.py is a macOS instrument pinned to the iPadOS 17 images.
   "build-verified-root.py",
+  "build-board-services.py",
 ]
 
 [device_tree]

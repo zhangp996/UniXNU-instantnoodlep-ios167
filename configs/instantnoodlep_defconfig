@@ -11,4 +11,7 @@ CONFIG_XNU_VERIFIED_ROOT_PROBE=y
 # Link the [kernel] archives into the kernel (docs/guide/build-kernel): without this
 # the mockfs/fixture symbols referenced by vfs_conf stay undefined at the final link.
 CONFIG_XNU_BUILD_ARCHIVES=y
+# Board bring-up services archive (weak platform observers: boot_progress_poll,
+# arm64_platform_sleep_hook), force-loaded into the final link.
+CONFIG_XNU_EXTRA_LD_ARCHIVES="-Wl,-force_load,{tree}/build/board-services/libBoardServices.a"
 # CONFIG_XNU_NATIVE_ADRENO is not set
