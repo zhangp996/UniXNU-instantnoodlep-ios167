@@ -33,6 +33,9 @@ archives = [
   "component:RamBlock",
   "component:AppleKeyStoreState",
   "component:ShengUfs",
+  # Bind NativeUfs's inherited IOBlockStorageDevice imports to the statically measured
+  # 20H392 donor addresses (audit-20h392-storage-abi.py) and re-archive libShengUfs.a.
+  "build-storage-bindings.py",
   # Device-owned verified-root archive (iOS 16.x pattern): real kit crypto + header-only
   # owner policy table from scripts/make-root-policies-linux.py. The reference
   # build-verified-root-probe.py is a macOS instrument pinned to the iPadOS 17 images.
