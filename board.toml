@@ -105,6 +105,7 @@ timeout = 3
 kernel_args = ["-v", "serial=3", "native-ufs-root=1"]
 
 [payload.adt]
+root_match_volume_uuid = "DADD93F8-DBBF-4B17-A1DF-0F11E64172F7"
 chip_id = "0x8015"
 unique_chip_id = "required"
 
