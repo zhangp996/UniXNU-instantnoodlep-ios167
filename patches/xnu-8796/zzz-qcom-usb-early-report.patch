@@ -1,0 +1,15 @@
+--- a/pexpert/arm/pe_kprintf.c
++++ b/pexpert/arm/pe_kprintf.c
+@@ -120,5 +120,12 @@
+ 	const bool qcom_usb_ready = qcom_usb_debug_init();
+ 	disable_kprintf_output = !qcom_usb_debug_kprintf_requested;
++	/* Early USB debug status: run the board check right after init so a refused
++	 * or non-enumerating controller is reported before AppleImage4 panics. With
++	 * qcom-usb-report=1 this panics with the full status word. */
++	{
++		extern void qcom_usb_board_check(void);
++		qcom_usb_board_check();
++	}
+ #endif
+ 	if (boot_progress_active()) { PE_kputc = boot_progress_putc; return; }
+ 	if (serial_init()) {

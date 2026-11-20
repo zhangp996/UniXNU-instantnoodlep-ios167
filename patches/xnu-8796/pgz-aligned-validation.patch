@@ -1,0 +1,13 @@
+# Hand-rebased onto xnu-8796.141.3 for iOS 16.7.16 (20H392); see series header.
+--- a/osfmk/kern/zalloc.c
++++ b/osfmk/kern/zalloc.c
+@@ -1467,7 +1467,8 @@ zone_id_require(zone_id_t zid, vm_size_t esize, void *addr)
+ zone_id_require(zone_id_t zid, vm_size_t esize, void *addr)
+ {
+-	if (from_zone_map(addr, esize) && zid == zone_index_from_ptr(addr)) {
++	vm_offset_t elem = pgz_decode((vm_offset_t)addr, 1);
++	if (from_zone_map((void *)elem, esize) && zid == zone_index_from_ptr((void *)elem)) {
+ 		return;
+ 	}
+ 	zone_id_require_panic(zid, addr);
+ }

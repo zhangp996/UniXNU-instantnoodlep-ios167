@@ -1,0 +1,19 @@
+# Runtime probe: IOAESAccelerator gMetaClass + raw vtable region dump (16.5 AES RE).
+diff --git a/libkern/c++/OSMetaClass.cpp b/libkern/c++/OSMetaClass.cpp
+--- a/libkern/c++/OSMetaClass.cpp
++++ b/libkern/c++/OSMetaClass.cpp
+@@ -604,7 +604,14 @@
+ 	 * create C++ objects in static constructors, but I really don't know!
+ 	 */
+ 	className = (const OSSymbol *)inClassName;
++	if (inClassName && __builtin_strcmp(inClassName, "IOAESAccelerator") == 0) {
++		printf("AESPROBE this=%p super=%p size=%u\n", this, inSuperClass, inClassSize);
++		uintptr_t a;
++		for (a = 0xfffffff005ca8e00ULL; a < 0xfffffff005ca8f80ULL; a += 8)
++			printf("AESPROBE raw %p = %p\n", (void *)a, (void *)*(uintptr_t *)a);
++	}
++
+ 
+ 	// sStalledClassesLock taken in preModLoad
+ 	if (!sStalled) {
+ 		/* There's no way we can look up the kext here, unfortunately.

@@ -1,0 +1,15 @@
+# Rebased onto xnu-8796.141.3 from D:\新建文件夹\full-project\r2\device\patches\xnu\zzz-knote-trace.patch (fuzz/offset only; hunks verified in place).
+diff --git a/osfmk/ipc/ipc_pset.c b/osfmk/ipc/ipc_pset.c
+index 8a981fb..7f0caca 100644
+--- a/osfmk/ipc/ipc_pset.c
++++ b/osfmk/ipc/ipc_pset.c
+@@ -765,6 +765,9 @@ filt_machportdetach(
+ 
+ 	io_lock(object);
+ 	if ((kn->kn_status & KN_VANISHED) || (kn->kn_flags & EV_EOF)) {
++		/* Board bring-up: which ports are ever armed for kqueue.  Only the identity is printed, so this
++		 * needs no process ABI and no lock beyond the one the lookup already took. */
++		printf("KNOTE attach port=%p\n", (void *)ip_object_to_port(object));
+ 		/*
+ 		 * ipc_mqueue_changed() already unhooked this knote from the waitq,
+ 		 */
