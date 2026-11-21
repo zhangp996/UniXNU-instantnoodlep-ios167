@@ -24,7 +24,7 @@ on:
       unixnu_ref:
         description: "zhangp996/UniXNU ref carrying the ios-16.7.16-20H392 OS profile"
         required: true
-        default: "main"
+        default: "instantnoodlep-ios167"
 
 permissions:
   contents: read
