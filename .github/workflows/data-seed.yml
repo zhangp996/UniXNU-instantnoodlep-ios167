@@ -78,6 +78,12 @@ jobs:
           [ -f device/board.toml ] || { echo "::error::device board.toml missing"; exit 1; }
           df -h "$GITHUB_WORKSPACE"
 
+      - name: Fetch the SoC source (board resolution needs it cached)
+        working-directory: UniXNU
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 unixnu fetch sm8250 -D ../device --out out
+
       - name: Fetch the IPSW OS disk image
         working-directory: UniXNU
         env:
